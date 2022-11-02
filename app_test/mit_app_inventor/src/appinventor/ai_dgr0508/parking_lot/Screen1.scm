@@ -1,0 +1,4 @@
+#|
+$JSON
+{"authURL":["ai2.appinventor.mit.edu"],"YaVersion":"219","Source":"Form","Properties":{"$Name":"Screen1","$Type":"Form","$Version":"30","AlignHorizontal":"3","AppName":"parking_lot","Title":"Main","Uuid":"0","$Components":[{"$Name":"Label1","$Type":"Label","$Version":"5","FontSize":"25","Text":"Parking lot System","Uuid":"-966506429"},{"$Name":"VerticalArrangement1","$Type":"VerticalArrangement","$Version":"4","AlignHorizontal":"3","AlignVertical":"2","BackgroundColor":"&H00FFFFFF","Height":"-2","Width":"-2","Uuid":"1735246129","$Components":[{"$Name":"Button1","$Type":"Button","$Version":"7","Width":"-1030","Text":"Charging","Uuid":"-642512041"},{"$Name":"Button2","$Type":"Button","$Version":"7","Width":"-1030","Text":"Empty Space","Uuid":"260929049"}]}]}}
+|#

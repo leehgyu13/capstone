@@ -1,0 +1,4 @@
+#|
+$JSON
+{"authURL":["ai2.appinventor.mit.edu"],"YaVersion":"219","Source":"Form","Properties":{"$Name":"Empty_space","$Type":"Form","$Version":"30","AppName":"parking_lot","Title":"Empty_space","Uuid":"0","$Components":[{"$Name":"VerticalArrangement1","$Type":"VerticalArrangement","$Version":"4","AlignHorizontal":"3","AlignVertical":"2","Height":"-2","Width":"-2","Uuid":"314986057","$Components":[{"$Name":"WebViewer1","$Type":"WebViewer","$Version":"10","Height":"-2","Width":"-1100","Uuid":"843167904"},{"$Name":"VerticalArrangement3","$Type":"VerticalArrangement","$Version":"4","AlignHorizontal":"3","AlignVertical":"2","Height":"-1020","Width":"-2","Uuid":"-2023138936","$Components":[{"$Name":"Button1","$Type":"Button","$Version":"7","Width":"-1030","Text":"Back","Uuid":"1168396336"}]}]}]}}
+|#
