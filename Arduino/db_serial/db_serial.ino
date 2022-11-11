@@ -4,8 +4,10 @@ int ParkID;
 int CarID;
 int CarExist;
 int ChargeStatus;
-String ssid = "yeoi";
-String pwd = "qp98al76";
+String ssid = "yeoi";                  // Network name to connect
+String pwd = "qp98al76";               // Network password
+String dbHost = "leehgyu.iptime.org";  // Data base url
+String dbPort = "8080";                  // Data base port
 
 SoftwareSerial esp01(2, 3);
 
@@ -37,7 +39,7 @@ void httpClient() {
   delay(1000);
   printResponse();
   Serial.println("Connecting TCP...\n");
-  esp01.println("AT+CIPSTART=4,\"TCP\",\"leehgyu.iptime.org\",8080");
+  esp01.println("AT+CIPSTART=4,\"TCP\",\""+dbHost+"\","+dbPort);
   delay(1000);
   printResponse();
   if(Serial.find("ERROR")) return;
@@ -47,7 +49,7 @@ void httpClient() {
   String strCarID = String(CarID);
   String strCarExist = String(CarExist);
   String strChargeStatus = String(ChargeStatus);
-  String cmd = "GET http://leehgyu.iptime.org:8080/insert.php?ParkID="+strParkID+"&CarID="+strCarID+"&CarExist="+strCarExist+"&Chargestatus="+strChargeStatus+" HTTP/1.0";
+  String cmd = "GET http://"+dbHost+":"+dbPort+"/insert.php?ParkID="+strParkID+"&CarID="+strCarID+"&CarExist="+strCarExist+"&Chargestatus="+strChargeStatus+" HTTP/1.0";
   esp01.println("AT+CIPSEND=4," + String(cmd.length() + 4));
   delay(1000);
   esp01.println(cmd);
