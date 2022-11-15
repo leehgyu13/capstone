@@ -10,11 +10,10 @@ $mysqli = new mysqli($db_host, $db_user, $db_passwd, $db_name);
     if($mysqli){
 		echo "MySQL successfully connected!<br/>";
 
-		$ParkID = $_POST['ParkID'];
-		$CarIDMsg = "차량 번호를 입력하세요.";
-		$CarID = $_POST['CarID'];
-    	$CarExist = $_POST['CarExist'];
-    	$Chargestatus = $_POST['Chargestatus'];
+		$ParkID = $_GET['ParkID'];
+		$CarID = $_GET['CarID'];
+    	$CarExist = $_GET['CarExist'];
+    	$Chargestatus = $_GET['Chargestatus'];
 	
 		echo "<br/>ParkID = $ParkID";
 		echo ", ";
