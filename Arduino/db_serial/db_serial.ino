@@ -1,11 +1,11 @@
 #include <SoftwareSerial.h>
 
-int ParkID;
-int CarID;
-int CarExist;
-int ChargeStatus;
-String ssid = "yeoi";                  // Network name to connect
-String pwd = "qp98al76";               // Network password
+int ParkID = 0;
+int CarID = 6398;
+int CarExist = 1;
+int ChargeStatus = 1;
+String ssid = "Arduinotest";                  // Network name to connect
+String pwd = "abcdefgh";               // Network password
 String dbHost = "leehgyu.iptime.org";  // Data base url
 String dbPort = "8080";                  // Data base port
 
@@ -20,30 +20,27 @@ void printResponse() {
 void connectWifi() {
   Serial.println("Connecting wifi...\n");
   esp01.println("AT+CWJAP=\""+ssid+"\",\""+pwd+"\"\r\n");
-  delay(5000);
+  delay(10000);
   if(esp01.find("OK")) {
     Serial.println("wifi connected\n");
   } else {
     Serial.println("Connect timeout\n");
   }
-  //delay(1000);
+  delay(5000);
 }
 
 void httpClient() {
-  ParkID = 3;
-  CarID = 6398;
-  CarExist = 1;
-  ChargeStatus = 1;
-  // 데이터 받는 코드 만들기
   esp01.println("AT+CIPMUX=1");
-  delay(1000);
+  delay(5000);
   printResponse();
   Serial.println("Connecting TCP...\n");
   esp01.println("AT+CIPSTART=4,\"TCP\",\""+dbHost+"\","+dbPort);
-  delay(1000);
+  delay(5000);
   printResponse();
   if(Serial.find("ERROR")) return;
-  
+}
+
+void dataSend(int ParkID, int CarID, int CarExist, int ChargeStaus){
   Serial.println("Sending data...\n");
   String strParkID = String(ParkID);
   String strCarID = String(CarID);
@@ -57,6 +54,7 @@ void httpClient() {
   esp01.println();
   delay(200);
   printResponse();
+  delay(5000);
 }
 
 void setup() {
@@ -68,13 +66,31 @@ void setup() {
   esp01.println("AT+CWMODE=3\r\n");
   delay(2000);
   connectWifi();
-  //delay(500);
+  delay(500);
+  //httpClient();
+  //delay(1000);
 }
 
 void loop() {
+  //ParkID = 0;
+  //CarID = 6398;
+  //CarExist = 1;
+  //ChargeStatus = 1;
+  //데이터 받는 코드 만들기
   httpClient();
-  //delay(1000);
+  delay(1000);
+  Serial.println((String) "ParkID: " + ParkID);
+  Serial.println((String) "CarID: " + CarID);
+  Serial.println((String) "CarExist: " + CarExist);
+  Serial.println((String) "ChargeStatus: " + ChargeStatus);
+  delay(1000);
+  dataSend(ParkID, CarID, CarExist, ChargeStatus);
+  ParkID += 1;
+  CarID += 1;
+  if(ParkID >= 3){
+    exit(0);
+  }  
 
-  exit(0);
+  //exit(0);
   //delay(5000);
 }
