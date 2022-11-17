@@ -1,5 +1,7 @@
 #include <SoftwareSerial.h>
 
+// rx 3번, tx2
+
 int ParkID = 0;
 int CarID = 6398;
 int CarExist = 0;
