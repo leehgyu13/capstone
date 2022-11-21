@@ -14,7 +14,7 @@ exit();
 
 $query = "SELECT * FROM `parking`";
 $res = mysqli_query($dbc,$query);
-$row = mysqli_fetch_array($res);
+//$row = mysqli_fetch_array($res);
 
 
 
@@ -31,12 +31,11 @@ echo "ERROR: Could not able to execute". $query." ". mysqli_error($dbc);
 
 while($data = mysqli_fetch_array($res))
 {
-	echo "{";
-    echo $data['ParkID']; echo ",";
-    echo $data['CarID']; echo ",";
-    echo $data['CarExist']; echo ",";
-	echo $data['Chargestatus'];
-	echo "}";
+    echo $data['ParkID'] .",";
+    echo $data['CarID'] .",";
+    echo $data['CarExist'] .",";
+	echo $data['ChargeStatus'];
+	echo "/";
 }
 
 mysqli_close($dbc);
