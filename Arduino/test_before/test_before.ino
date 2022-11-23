@@ -1,14 +1,10 @@
 #include <SoftwareSerial.h>
-// 초음파센서의 송신부를 8번핀으로 선언하고 수신부는 9번핀으로 선언합니다.
-int trig = 11;
-int echo = 12;
-int cnt = 0;
-int data =0;
-int ParkID;
-int CarID;
-int CarExist;
-int ChargeStatus;
-int cntduration = 3; //지속시간
+
+// rx 3번, tx2
+
+int ParkID = 0;
+int CarExist = 0;
+
 String ssid = "Arduinotest";                  // Network name to connect
 String pwd = "abcdefgh";               // Network password
 String dbHost = "leehgyu.iptime.org";  // Data base url
@@ -16,23 +12,23 @@ String dbPort = "8080";                  // Data base port
 
 SoftwareSerial esp01(2, 3);
 
-// 실행시 가장 먼저 호출되는 함수이며, 최초 1회만 실행됩니다.
-// 변수를 선언하거나 초기화를 위한 코드를 포함합니다.
-void setup() {
-  // 초음파센서의 동작 상태를 확인하기 위하여 시리얼 통신을 설정합니다. (전송속도 9600bps)
-  Serial.begin(9600); //시리얼모니터
-  esp01.begin(9600); //와이파이 시리얼
-  esp01.println("AT+RST\r\n");
-  delay(2000);
-  esp01.println("AT+CWMODE=3\r\n");
-  delay(2000);
-  connectWifi();
-  delay(500);
-  //초음파 송신부-> OUTPUT, 초음파 수신부 -> INPUT,  LED핀 -> OUTPUT
-  pinMode(trig, OUTPUT);
-  pinMode(echo, INPUT);
-  
-}
+// 초음파센서의 송신부를 8번핀으로 선언하고 수신부는 9번핀으로 선언합니다.
+int trig1 = 11;
+int echo1 = 12;
+int trig2 = 6;
+int echo2 = 7;
+int trig3 = 8;
+int echo3 = 9;
+
+int cnt1 = 0;
+int cnt2 = 0;
+int cnt3 = 0;
+int data1 = 0;
+int data_pre1 = data1;
+int data2 = 0;
+int data_pre2 = data2;
+int data3 = 0;
+int data_pre3 = data3;
 
 void printResponse() {
   while(esp01.available()){
@@ -43,72 +39,185 @@ void printResponse() {
 void connectWifi() {
   Serial.println("Connecting wifi...\n");
   esp01.println("AT+CWJAP=\""+ssid+"\",\""+pwd+"\"\r\n");
-  delay(5000);
-  if(esp01.find("OK")) {
-    Serial.println("wifi connected\n");
-  } else {
-    Serial.println("Connect timeout\n");
+  while(!(esp01.find("OK"))){
+    Serial.println("...wifi");
   }
-  //delay(1000);
+  Serial.println("wifi connected\n");
 }
 
- 
-// setup() 함수가 호출된 이후, loop() 함수가 호출되며,
-// 블록 안의 코드를 무한히 반복 실행됩니다.
-void loop() {
-  digitalWrite(trig, LOW);
-  digitalWrite(echo, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trig, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trig, LOW);
- 
-  unsigned long duration = pulseIn(echo, HIGH);
- 
-  // 초음파의 속도는 초당 340미터를 이동하거나, 29마이크로초 당 1센치를 이동합니다.
-  // 따라서, 초음파의 이동 거리 = duration(왕복에 걸린시간) / 29 / 2 입니다.
-  float distance = duration / 29.0 / 2.0;
- 
-  // 측정된 거리 값를 시리얼 모니터에 출력합니다.
-  Serial.print(distance);
-  Serial.println("cm");
-  if(distance <= 10){
-    cnt = cnt +1;
-  }else{
-    cnt = 0;
-  }
-  if(cnt >= cntduration){
-    data = 1;
-  }else{
-    data = 0;
-  }
-  Serial.print(data);
-  Serial.println("");
-  // 0.2초 동안 대기합니다.
-  //delay(200);
-  ParkID = 3;
-  CarID = 6398;
-  CarExist = data; // data update
-  ChargeStatus = 1;
-  // 데이터 받는 코드 만들기
+void httpClient() {
   esp01.println("AT+CIPMUX=1");
-  delay(1000);
+  while(!(esp01.find("OK"))){
+    Serial.println("...MUX");
+  }
   printResponse();
   Serial.println("Connecting TCP...\n");
   esp01.println("AT+CIPSTART=4,\"TCP\",\""+dbHost+"\","+dbPort);
-  delay(1000);
+  while(!(esp01.find("OK"))){
+    Serial.println("...TCP");
+  }
   printResponse();
+}
+
+void dataSend(int ParkID, int CarExist){
   Serial.println("Sending data...\n");
   String strParkID = String(ParkID);
-  String strCarID = String(CarID);
   String strCarExist = String(CarExist);
-  String strChargeStatus = String(ChargeStatus);
-  String cmd = "GET http://"+dbHost+":"+dbPort+"/insert.php?ParkID="+strParkID+"&CarID="+strCarID+"&CarExist="+strCarExist+"&Chargestatus="+strChargeStatus+" HTTP/1.0";
+  String cmd = "GET http://"+dbHost+":"+dbPort+"/insert.php?ParkID="+strParkID+"&CarExist="+strCarExist+" HTTP/1.0";
   esp01.println("AT+CIPSEND=4," + String(cmd.length() + 4));
-  delay(1000);
+  while(!(esp01.find("OK"))){
+    Serial.println("...SEND");
+  }
   esp01.println(cmd);
   delay(200);
   esp01.println();
-  delay(200);
   printResponse();
+}
+
+void setup() {
+  Serial.begin(9600);   //시리얼모니터
+  esp01.begin(9600); //와이파이 시리얼
+  delay(2000);
+  esp01.println("AT+RST\r\n");
+  while(!(esp01.find("ready"))){
+    Serial.println("...rst");
+  }
+  esp01.println("AT+CWMODE=3\r\n");
+  while(!(esp01.find("OK"))){
+    Serial.println("...mode");
+  }
+  connectWifi();
+
+  //sensor
+  //초음파 송신부-> OUTPUT, 초음파 수신부 -> INPUT,  LED핀 -> OUTPUT
+  pinMode(trig1, OUTPUT);
+  pinMode(echo1, INPUT);
+  pinMode(trig2, OUTPUT);
+  pinMode(echo2, INPUT);
+  pinMode(trig3, OUTPUT);
+  pinMode(echo3, INPUT);
+}
+
+void loop() {
+  //sensor1
+  digitalWrite(trig1, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trig1, LOW);
+ 
+  unsigned long duration1 = pulseIn(echo1, HIGH);
+ 
+  // 초음파의 속도는 초당 340미터를 이동하거나, 29마이크로초 당 1센치를 이동합니다.
+  // 따라서, 초음파의 이동 거리 = duration(왕복에 걸린시간) / 29 / 2 입니다.
+  float distance1 = duration1 / 29.0 / 2.0;
+ 
+  // 측정된 거리 값를 시리얼 모니터에 출력합니다.
+  Serial.print(distance1);
+  Serial.println("cm");
+  if(distance1 <= 10){
+    cnt1 = cnt1 +1;
+  }else{
+    cnt1 = 0;
+  }
+  if(cnt1 >= 3){
+    data1 = 1;
+  }else{
+    data1 = 0;
+  }
+  Serial.println("sensor 1 : ");
+  Serial.print(data1);
+  Serial.println("");
+  // 0.2초 동안 대기합니다.
+  delay(800);
+
+  //wifi
+  if(data_pre1 != data1){
+    CarExist = data1;
+    ParkID = 1;
+    httpClient();
+    Serial.println((String) "ParkID: " + ParkID);
+    Serial.println((String) "CarExist: " + CarExist);
+    dataSend(ParkID, CarExist);
+    data_pre1 = data1;
+  }
+
+  //sensor2
+  digitalWrite(trig2, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trig2, LOW);
+ 
+  unsigned long duration2 = pulseIn(echo2, HIGH);
+ 
+  // 초음파의 속도는 초당 340미터를 이동하거나, 29마이크로초 당 1센치를 이동합니다.
+  // 따라서, 초음파의 이동 거리 = duration(왕복에 걸린시간) / 29 / 2 입니다.
+  float distance2 = duration2 / 29.0 / 2.0;
+ 
+  // 측정된 거리 값를 시리얼 모니터에 출력합니다.
+  Serial.print(distance2);
+  Serial.println("cm");
+  if(distance2 <= 10){
+    cnt2 = cnt2 +1;
+  }else{
+    cnt2 = 0;
+  }
+  if(cnt2 >= 3){
+    data2 = 1;
+  }else{
+    data2 = 0;
+  }
+  Serial.println("sensor 2 : ");
+  Serial.print(data2);
+  Serial.println("");
+  // 0.2초 동안 대기합니다.
+  delay(800);
+
+  //wifi
+  if(data_pre2 != data2){
+    CarExist = data2;
+    ParkID = 2;
+    httpClient();
+    Serial.println((String) "ParkID: " + ParkID);
+    Serial.println((String) "CarExist: " + CarExist);
+    dataSend(ParkID, CarExist);
+    data_pre2 = data2;
+  }   
+  //sensor3
+  digitalWrite(trig3, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trig3, LOW);
+ 
+  unsigned long duration3 = pulseIn(echo3, HIGH);
+ 
+  // 초음파의 속도는 초당 340미터를 이동하거나, 29마이크로초 당 1센치를 이동합니다.
+  // 따라서, 초음파의 이동 거리 = duration(왕복에 걸린시간) / 29 / 2 입니다.
+  float distance3 = duration3 / 29.0 / 2.0;
+ 
+  // 측정된 거리 값를 시리얼 모니터에 출력합니다.
+  Serial.print(distance3);
+  Serial.println("cm");
+  if(distance3 <= 10){
+    cnt3 = cnt3 +1;
+  }else{
+    cnt3 = 0;
+  }
+  if(cnt3 >= 3){
+    data3 = 1;
+  }else{
+    data3 = 0;
+  }
+  Serial.println("sensor 3 : ");
+  Serial.print(data3);
+  Serial.println("");
+  // 0.2초 동안 대기합니다.
+  delay(800);
+
+  //wifi
+  if(data_pre3 != data3){
+    CarExist = data3;
+    ParkID = 3;
+    httpClient();
+    Serial.println((String) "ParkID: " + ParkID);
+    Serial.println((String) "CarExist: " + CarExist);
+    dataSend(ParkID, CarExist);
+    data_pre3 = data3;
+  } 
 }
