@@ -3,9 +3,7 @@
 // rx 3번, tx2
 
 int ParkID = 0;
-int CarID = 6398;
 int CarExist = 0;
-int ChargeStatus = 1;
 
 String ssid = "Arduinotest";                  // Network name to connect
 String pwd = "abcdefgh";               // Network password
@@ -61,13 +59,11 @@ void httpClient() {
   if(Serial.find("ERROR")) return;
 }
 
-void dataSend(int ParkID, int CarID, int CarExist, int ChargeStaus){
+void dataSend(int ParkID, int CarExist){
   Serial.println("Sending data...\n");
   String strParkID = String(ParkID);
-  String strCarID = String(CarID);
   String strCarExist = String(CarExist);
-  String strChargeStatus = String(ChargeStatus);
-  String cmd = "GET http://"+dbHost+":"+dbPort+"/insert.php?ParkID="+strParkID+"&CarID="+strCarID+"&CarExist="+strCarExist+"&Chargestatus="+strChargeStatus+" HTTP/1.0";
+  String cmd = "GET http://"+dbHost+":"+dbPort+"/insert.php?ParkID="+strParkID+"&CarExist="+strCarExist+" HTTP/1.0";
   esp01.println("AT+CIPSEND=4," + String(cmd.length() + 4));
   delay(1000);
   esp01.println(cmd);
@@ -134,29 +130,14 @@ void loop() {
 
   //wifi
   if(data_pre1 != data1){
-    //ParkID = 0;
-    //CarID = 6398;
-    //CarExist = 1;
-    //ChargeStatus = 1;
-    //데이터 받는 코드 만들기
     CarExist = data1;
     ParkID = 1;
     httpClient();
     delay(5000);
     Serial.println((String) "ParkID: " + ParkID);
-    Serial.println((String) "CarID: " + CarID);
     Serial.println((String) "CarExist: " + CarExist);
-    Serial.println((String) "ChargeStatus: " + ChargeStatus);
     delay(1000);
-    dataSend(ParkID, CarID, CarExist, ChargeStatus);
-    //ParkID += 1;
-    //CarID += 1;
-    //if(ParkID >= 3){
-      //exit(0);
-    //}  
-
-    //exit(0);
-    //delay(5000);
+    dataSend(ParkID, CarExist);
     data_pre1 = data1;
   }
 
@@ -192,11 +173,6 @@ void loop() {
 
   //wifi
   if(data_pre2 != data2){
-    //ParkID = 0;
-    //CarID = 6398;
-    //CarExist = 1;
-    //ChargeStatus = 1;
-    //데이터 받는 코드 만들기
     CarExist = data2;
     ParkID = 2;
     httpClient();
@@ -206,15 +182,7 @@ void loop() {
     Serial.println((String) "CarExist: " + CarExist);
     Serial.println((String) "ChargeStatus: " + ChargeStatus);
     delay(1000);
-    dataSend(ParkID, CarID, CarExist, ChargeStatus);
-    //ParkID += 1;
-    //CarID += 1;
-    //if(ParkID >= 3){
-      //exit(0);
-    //}  
-
-    //exit(0);
-    //delay(5000);
+    dataSend(ParkID, CarExist);
     data_pre2 = data2;
   }   
       //sensor
@@ -249,11 +217,6 @@ void loop() {
 
   //wifi
   if(data_pre3 != data3){
-    //ParkID = 0;
-    //CarID = 6398;
-    //CarExist = 1;
-    //ChargeStatus = 1;
-    //데이터 받는 코드 만들기
     CarExist = data3;
     ParkID = 3;
     httpClient();
@@ -263,15 +226,7 @@ void loop() {
     Serial.println((String) "CarExist: " + CarExist);
     Serial.println((String) "ChargeStatus: " + ChargeStatus);
     delay(1000);
-    dataSend(ParkID, CarID, CarExist, ChargeStatus);
-    //ParkID += 1;
-    //CarID += 1;
-    //if(ParkID >= 3){
-      //exit(0);
-    //}  
-
-    //exit(0);
-    //delay(5000);
+    dataSend(ParkID, CarExist);
     data_pre3 = data3;
   } 
 }
