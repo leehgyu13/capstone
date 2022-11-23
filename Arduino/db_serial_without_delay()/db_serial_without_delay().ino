@@ -23,7 +23,6 @@ void connectWifi() {
     Serial.println("...wifi");
   }
   Serial.println("wifi connected\n");
-  delay(500);
 }
 
 void httpClient() {
@@ -50,19 +49,14 @@ void dataSend(int ParkID, int CarExist){
     Serial.println("...SEND");
   }
   esp01.println(cmd);
-  /*while(!(esp01.find("CLOSED"))){
-    Serial.println("...send");
-  }*/
   delay(200);
   esp01.println();
-  //delay(200);
   printResponse();
-  //delay(5000);
 }
 
 void setup() {
-  Serial.begin(9600);   //시리얼모니터
-  esp01.begin(9600); //와이파이 시리얼
+  Serial.begin(9600);  //시리얼모니터
+  esp01.begin(9600);   //와이파이 시리얼
   delay(2000);
   Serial.println("setup start");
   esp01.println("AT+RST\r\n");
@@ -77,16 +71,13 @@ void setup() {
   Serial.println("mode done");
   connectWifi();
   Serial.println("setup end");
-  //delay(500);
 }
 
 void loop() {
   Serial.println("loop start");
   httpClient();
-  //delay(5000);
   Serial.println((String) "ParkID: " + ParkID);
   Serial.println((String) "CarExist: " + CarExist);
-  //delay(1000);
   dataSend(ParkID, CarExist);
   if(CarExist == 0) {
     CarExist = 1;
