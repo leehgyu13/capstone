@@ -1,17 +1,20 @@
 #include <SoftwareSerial.h>
-
-// rx 3번, tx2
-
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 int ParkID = 0;
+int CarID = 6398;
 int CarExist = 0;
-
+int ChargeStatus = 1;
+int leftparking = 3;
 String ssid = "Arduinotest";                  // Network name to connect
 String pwd = "abcdefgh";               // Network password
 String dbHost = "leehgyu.iptime.org";  // Data base url
 String dbPort = "8080";                  // Data base port
 
 SoftwareSerial esp01(2, 3);
-
+// SDA : A4, SCL : A5 
+// rx : 3, tx : 2
 // 초음파센서의 송신부를 8번핀으로 선언하고 수신부는 9번핀으로 선언합니다.
 int trig1 = 11;
 int echo1 = 12;
@@ -59,11 +62,13 @@ void httpClient() {
   if(Serial.find("ERROR")) return;
 }
 
-void dataSend(int ParkID, int CarExist){
+void dataSend(int ParkID, int CarID, int CarExist, int ChargeStaus){
   Serial.println("Sending data...\n");
   String strParkID = String(ParkID);
+  String strCarID = String(CarID);
   String strCarExist = String(CarExist);
-  String cmd = "GET http://"+dbHost+":"+dbPort+"/insert.php?ParkID="+strParkID+"&CarExist="+strCarExist+" HTTP/1.0";
+  String strChargeStatus = String(ChargeStatus);
+  String cmd = "GET http://"+dbHost+":"+dbPort+"/insert.php?ParkID="+strParkID+"&CarID="+strCarID+"&CarExist="+strCarExist+"&Chargestatus="+strChargeStatus+" HTTP/1.0";
   esp01.println("AT+CIPSEND=4," + String(cmd.length() + 4));
   delay(1000);
   esp01.println(cmd);
@@ -84,6 +89,8 @@ void setup() {
   delay(2000);
   connectWifi();
   delay(500);
+  lcd.init();
+  lcd.backlight();
   //httpClient();
   //delay(1000);
 
@@ -130,14 +137,29 @@ void loop() {
 
   //wifi
   if(data_pre1 != data1){
+    //ParkID = 0;
+    //CarID = 6398;
+    //CarExist = 1;
+    //ChargeStatus = 1;
+    //데이터 받는 코드 만들기
     CarExist = data1;
     ParkID = 1;
     httpClient();
     delay(5000);
     Serial.println((String) "ParkID: " + ParkID);
+    Serial.println((String) "CarID: " + CarID);
     Serial.println((String) "CarExist: " + CarExist);
+    Serial.println((String) "ChargeStatus: " + ChargeStatus);
     delay(1000);
-    dataSend(ParkID, CarExist);
+    dataSend(ParkID, CarID, CarExist, ChargeStatus);
+    //ParkID += 1;
+    //CarID += 1;
+    //if(ParkID >= 3){
+      //exit(0);
+    //}  
+
+    //exit(0);
+    //delay(5000);
     data_pre1 = data1;
   }
 
@@ -173,6 +195,11 @@ void loop() {
 
   //wifi
   if(data_pre2 != data2){
+    //ParkID = 0;
+    //CarID = 6398;
+    //CarExist = 1;
+    //ChargeStatus = 1;
+    //데이터 받는 코드 만들기
     CarExist = data2;
     ParkID = 2;
     httpClient();
@@ -182,7 +209,15 @@ void loop() {
     Serial.println((String) "CarExist: " + CarExist);
     Serial.println((String) "ChargeStatus: " + ChargeStatus);
     delay(1000);
-    dataSend(ParkID, CarExist);
+    dataSend(ParkID, CarID, CarExist, ChargeStatus);
+    //ParkID += 1;
+    //CarID += 1;
+    //if(ParkID >= 3){
+      //exit(0);
+    //}  
+
+    //exit(0);
+    //delay(5000);
     data_pre2 = data2;
   }   
       //sensor
@@ -217,6 +252,11 @@ void loop() {
 
   //wifi
   if(data_pre3 != data3){
+    //ParkID = 0;
+    //CarID = 6398;
+    //CarExist = 1;
+    //ChargeStatus = 1;
+    //데이터 받는 코드 만들기
     CarExist = data3;
     ParkID = 3;
     httpClient();
@@ -226,7 +266,62 @@ void loop() {
     Serial.println((String) "CarExist: " + CarExist);
     Serial.println((String) "ChargeStatus: " + ChargeStatus);
     delay(1000);
-    dataSend(ParkID, CarExist);
+    dataSend(ParkID, CarID, CarExist, ChargeStatus);
+    //ParkID += 1;
+    //CarID += 1;
+    //if(ParkID >= 3){
+      //exit(0);
+    //}  
+
+    //exit(0);
+    //delay(5000);
     data_pre3 = data3;
   } 
-}
+  leftparking = 3-(data1+data2+data3);
+  lcd.setCursor(1,0);
+  lcd.print("S");
+  lcd.setCursor(2,0);
+  lcd.print("K");
+  lcd.setCursor(3,0);
+  lcd.print("K");
+  lcd.setCursor(4,0);
+  lcd.print("U");
+  lcd.setCursor(8,0);
+  lcd.print("P");
+  lcd.setCursor(9,0);
+  lcd.print("A");
+  lcd.setCursor(10,0);
+  lcd.print("R");
+  lcd.setCursor(11,0);
+  lcd.print("K");
+  lcd.setCursor(12,0);
+  lcd.print("I");
+  lcd.setCursor(13,0);
+  lcd.print("N");
+  lcd.setCursor(14,0);
+  lcd.print("G");
+
+  lcd.setCursor(2,1);
+  lcd.print(leftparking);
+  lcd.setCursor(4,1);
+  lcd.print("e");
+  lcd.setCursor(5,1);
+  lcd.print("m");
+  lcd.setCursor(6,1);
+  lcd.print("p");
+  lcd.setCursor(7,1);
+  lcd.print("t");
+  lcd.setCursor(8,1);
+  lcd.print("y");
+  
+  lcd.setCursor(10,1);
+  lcd.print("s");
+  lcd.setCursor(11,1);
+  lcd.print("p");
+  lcd.setCursor(12,1);
+  lcd.print("a");
+  lcd.setCursor(13,1);
+  lcd.print("c");
+  lcd.setCursor(14,1);
+  lcd.print("e");
+  }
