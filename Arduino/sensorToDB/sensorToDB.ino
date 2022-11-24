@@ -95,7 +95,7 @@ void setup() {
 
   // lcd
   lcd.init();
-
+  lcd.backlight();
   
   //sensor
   //초음파 송신부-> OUTPUT, 초음파 수신부 -> INPUT,  LED핀 -> OUTPUT
