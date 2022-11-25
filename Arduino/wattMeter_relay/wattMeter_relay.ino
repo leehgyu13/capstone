@@ -1,16 +1,12 @@
-/*!
- *@file getVoltageCurrentPower.ino
- *@brief Get the current, voltage, and power of electronic devices.
- *@copyright   Copyright (c) 2010 DFRobot Co.Ltd (http://www.dfrobot.com)
- *@license     The MIT license (MIT)
- *@author [fengli](li.feng@dfrobot.com)
- *@version  V1.0
- *@date  2022-3-1
- *@url https://github.com/DFRobot/DFRobot_INA219
-*/
+#include <WiFiEsp.h>
+#include <WiFiEspClient.h>
+#include <WiFiEspServer.h>
+#include <WiFiEspUdp.h>
 
 #include <Wire.h>
 #include "DFRobot_INA219.h"
+#include <SoftwareSerial.h>
+#include <WiFiEsp.h>
 
 /**
  * @fn DFRobot_INA219_IIC
@@ -31,25 +27,15 @@ float extMeterReading_mA = 1000;
 //relay
 int relay = 8;
 
-void setup() 
-{
-    Serial.begin(9600);
-    //Open the serial port
-    while(!Serial);
-    
-    Serial.println();
-    //Initialize the sensor
-    while(ina219.begin() != true) {
-        Serial.println("INA219 begin faild");
-        delay(2000);
-    }
-    //Linear calibration
-    ina219.linearCalibrate(/*The measured current before calibration*/ina219Reading_mA, /*The current measured by other current testers*/extMeterReading_mA);
-    Serial.println();
+//Serial
+char ssid[] = "SMSA";                  // Network name to connect
+char pwd[] = "smsa2ndgeneration";               // Network password
+char server[] = "leehgyu.iptime.org";
+int status = WL_IDLE_STATUS;
+int ParkID = 0;
 
-    //relay
-    pinMode(relay,OUTPUT);
-}
+WiFiEspClient client;
+SoftwareSerial esp01(2, 3);
 
 void wattMeter()
 {
@@ -69,9 +55,103 @@ void wattMeter()
     delay(1000);
 }
 
-void loop () {
-  digitalWrite (relay,HIGH);
-  delay (2000);
-  digitalWrite (relay ,LOW);
-  delay(2000);
+void dataSend(int ParkID, int CarExist){
+  Serial.println("Sending data...\n");
+  String strParkID = String(ParkID);
+  String strCarExist = String(CarExist);
+  Serial.println("Starting connection to server...");
+  // if you get a connection, report back via serial
+  if (client.connect(server, 8080)) {
+    Serial.println("Connected to server");
+    // Make a HTTP request
+    client.println("GET /insert.php?ParkID="+strParkID+"&CarExist="+strCarExist+" HTTP/1.1");
+    client.println("Host: leehgyu.iptime.org");
+    client.println("Connection: close");
+    client.println();
+  }
+}
+
+void dataRecv(){
+  Serial.println("data receiving...\n");
+  Serial.println("Starting connection to server...");
+  // if you get a connection, report back via serial
+  if (client.connect(server, 8080)) {
+    Serial.println("Connected to server");
+    // Make a HTTP request
+    client.println("GET /post.php HTTP/1.1");
+    client.println("Host: leehgyu.iptime.org");
+    client.println("Connection: close");
+    client.println();
+    Serial.println("receive");
+  }
+}
+
+void setup() 
+{
+    Serial.begin(9600);
+    esp01.begin(9600);
+    WiFi.init(&esp01);
+    delay(2000);
+    // check for the presence of the shield
+  if (WiFi.status() == WL_NO_SHIELD) {
+    Serial.println("WiFi shield not present");
+    // don't continue
+    while (true);
+  }
+
+  // attempt to connect to WiFi network
+  while ( status != WL_CONNECTED) {
+    Serial.print("Attempting to connect to WPA SSID: ");
+    Serial.println(ssid);
+    // Connect to WPA/WPA2 network
+    status = WiFi.begin(ssid, pwd);
+  }
+  // you're connected now, so print out the data
+  Serial.println("You're connected to the network");
+  printWifiStatus();
+  Serial.println();
+
+    //Initialize the sensor
+    while(ina219.begin() != true) {
+        Serial.println("INA219 begin faild");
+        delay(2000);
+    }
+    //Linear calibration
+    ina219.linearCalibrate(/*The measured current before calibration*/ina219Reading_mA, /*The current measured by other current testers*/extMeterReading_mA);
+    Serial.println();
+
+    //relay
+    pinMode(relay,OUTPUT);
+}
+
+void loop() {
+  dataRecv();
+  while (client.available()) {
+    char ParkID_char = client.read();
+    Serial.write(ParkID_char);
+    ParkID = ParkID_char - '0';
+  }
+  Serial.println("\n"+ParkID);
+  if(ParkID != 0) {
+    digitalWrite (relay,HIGH);
+    wattMeter();
+    //data send
+  } else {
+    digitalWrite (relay ,LOW);
+  }
+}
+
+void printWifiStatus(){
+  // print the SSID of the network you're attached to
+  Serial.print("SSID: ");
+  Serial.println(WiFi.SSID());
+  // print your WiFi shield's IP address
+  IPAddress ip = WiFi.localIP();
+  Serial.print("IP Address: ");
+  Serial.println(ip);
+  // print the received signal strength
+  long rssi = WiFi.RSSI();
+  Serial.print("Signal strength (RSSI):");
+  Serial.print(rssi);
+  Serial.println(" dBm");
 }
