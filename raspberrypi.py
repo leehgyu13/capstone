@@ -1,48 +1,47 @@
-# myobj = {"ParkID" : strParkID, "CarExist" : strCarExist}
-# r=requests.post(link, json=myobj)
-# print(r.text)
-
-# x = requests.get("http://"+dbHost+":"+dbPort+"/read.php")
-# print(x.text)
-
 import serial
 import time
 import requests
-port = serial.Serial("/dev/ttyACM0", "9600")
+port = serial.Serial("/dev/ttyUSB0", "9600")
 dbHost = "leehgyu.iptime.org"   #Data base url
 dbPort = "8080"                 #Data base port
 strParkID = "1"
 strCarExist = "1"
+flag = 3
+chargestatus = 0.0
 find_link = "http://"+dbHost+":"+dbPort+"/read.php"
 
+port.reset_input_buffer()
 while True:
-    try:
-        x = requests.get(find_link)
-        datatext = x.text
-        rows = datatext.split(" ")[0].split("/")
-        print(rows)
-        relay_rows = [rows[0].split(",")[4],rows[1].split(",")[4],rows[2].split(",")[4]]
-        print(relay_rows)
-        for i in [0,1,2]:
-            if(relay_rows[i]=='1'):
-                command = "start" #relay = 1 이면 보냄
-                port.write(command.encode())
-                time.sleep(1)
-            #print(relay_rows[i])
-                flag = True
-                st_time = time.time()
-                while(flag):
-                    if(port.readable()):
-                        data_arduino = port.readline()	# 시리얼 포트에서 읽어들인 값
-                        print(data_arduino)
-                        strParkID = str(i)
-                        insert_link = "http://"+dbHost+":"+dbPort+"/insert.php?ParkID="+strParkID+"&CarExist="+strCarExist
-                        x = requests.get(insert_link)
-                        if(time.time()- st_time >= 30):
-                            flag = False
-                            finish_link = "http://"+dbHost+":"+dbPort+"/insert.php?ParkID="+strParkID+"&CarExist="+strCarExist
-                            x = requests.get(insert_link)
-    except KeyboardInterrupt:
-        break
-                
+	
+	x = requests.get(find_link)
+	datatext = x.text
+	rows = datatext.split(" ")[0].split("/")
+	relay_rows = [int(rows[0].split(",")[4]),int(rows[1].split(",")[4]),int(rows[2].split(",")[4])]
+	if port.in_waiting >0 :
+		line = port.readline().decode().rstrip()
+	for i in [0,1,2]:
+		if(relay_rows[i] == 1):
+			#port.reset_input_buffer()
+			command = 'a'
+			port.write(command.encode())
+			#print("relay on")
+			if port.in_waiting >0 :
+				line = port.readline().decode().rstrip()
+				chargestatus+= float(line)
+				print("cs:", chargestatus)
+				strchargestatus = str(int(chargestatus))
+				strparkID = str(i+1)
+				insert_link = "http://"+dbHost+":"+dbPort+"/charge_status.php?ParkID="+strparkID+"&ChargeStatus="+strchargestatus
+				x = requests.get(insert_link)
+				flag = i
+		if(flag == i and relay_rows[i] == 0):
+			port.reset_input_buffer()
+			command = 'b'
+			port.write(command.encode())
+			chargestatus = 0.0
+			strchargestatus = str(int(chargestatus))
+			strparkID = str(i+1)
+			insert_link = "http://"+dbHost+":"+dbPort+"/charge_status.php?ParkID="+strparkID+"&ChargeStatus="+strchargestatus
+			x = requests.get(insert_link)
+			#print("relay low")
 port.close()
