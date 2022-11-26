@@ -14,13 +14,8 @@ exit();
 
 $query = "SELECT * FROM `parking`";
 $res = mysqli_query($dbc,$query);
-//$row = mysqli_fetch_array($res);
-
-
 
 if(mysqli_query($dbc, $query)){
-
-
 } 
 else{
 echo "ERROR: Could not able to execute". $query." ". mysqli_error($dbc);
